@@ -1,4 +1,4 @@
-#!/home/sibot/anaconda2/bin/python
+#!/usr/bin/env python3
 """ yolo_bbox_to_sort.py
     Subscribe to the Yolo 2 bboxes, and publish the detections with a 2d appearance feature used for reidentification
 """
@@ -38,11 +38,11 @@ class Detector_3d:
         self.depth_model = create_depth_model('FPointNet', fpointnet_config)
         self.calib = OmniCalibration(calibration_folder)
         self.velodyne_sub_upper = \
-            message_filters.Subscriber("/upper_velodyne/velodyne_points", PointCloud2, queue_size=2)
+            message_filters.Subscriber("/upper_velodyne/velodyne_points", PointCloud2, queue_size=10)
         self.velodyne_sub_lower = \
-            message_filters.Subscriber("/lower_velodyne/velodyne_points", PointCloud2, queue_size=2)
+            message_filters.Subscriber("/lower_velodyne/velodyne_points", PointCloud2, queue_size=10)
         self.yolo_bbox_sub = \
-            message_filters.Subscriber("/omni_yolo_bboxes", BoundingBoxes, queue_size=2)
+            message_filters.Subscriber("/omni_yolo_bboxes", BoundingBoxes, queue_size=10)
         
         self.time_sync = \
             message_filters.ApproximateTimeSynchronizer([self.yolo_bbox_sub,
@@ -58,6 +58,7 @@ class Detector_3d:
         rospy.loginfo("3D detector ready.")
         
     def get_3d_feature(self, y1_bboxes, pointcloud_upper, pointcloud_lower):
+        print("getting pcs")
         start = time.time()
         #rospy.loginfo('Processing Pointcloud with FPointNet')
         # Assumed that pointclouds have 64 bit floats!
@@ -87,7 +88,8 @@ class Detector_3d:
         frame_det_ids = []
         count = 0
         for y1_bbox in y1_bboxes.bounding_boxes:
-            if y1_bbox.Class == 'person':
+            print(y1_bbox.id)
+            if y1_bbox.Class == 'person'or y1_bbox.Class == 'Pedestrian' :
                 xmin = y1_bbox.xmin
                 xmax = y1_bbox.xmax
                 ymin = y1_bbox.ymin
@@ -109,7 +111,6 @@ class Detector_3d:
                                    self.calib, (3, 480, 3760), omni=True,
                                    peds=True)
         depth_features = convert_depth_features(depth_features, valid_3d)
-
         for box, feature, i in zip(boxes_3d, depth_features, frame_det_ids):
             #frustum = frustums[i]
             #frustum[:, [0,2]] = np.squeeze(np.matmul(
@@ -164,7 +165,7 @@ class Detector_3d:
         
         self.feature_3d_pub.publish(features_3d)
         
-        # rospy.loginfo("3D detector time: {}".format(time.time() - start))
+        #rospy.loginfo("3D detector time: {}".format(time.time() - start))
 
     def publish_pointcloud_from_array(self, pointcloud, publisher, frame = 'occam', header = None):
         list_pc = [tuple(j) for j in pointcloud]

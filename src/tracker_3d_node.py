@@ -1,5 +1,4 @@
-#!/home/sibot/anaconda2/bin/python
-""" yolo_bbox_to_sort.py
+#!/usr/bin/env python3""" yolo_bbox_to_sort.py
     Subscribe to the Yolo 2 bboxes, and publish the detections with a 2d appearance feature used for reidentification
 """
 import time

@@ -692,6 +692,6 @@ def create_appearance_model(alignreid_checkpoint, resnet_reid_checkpoint=None, c
   sd = torch.load(alignreid_checkpoint, map_location=map_location)
   load_state_dict(appearance_model, sd['state_dicts'][0])
   if cuda:
-    appearance_model.to('cuda:1')
+    appearance_model.to('cuda:0')
   appearance_model.eval()
   return appearance_model

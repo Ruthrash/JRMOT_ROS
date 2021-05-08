@@ -1,6 +1,11 @@
-# JRMOT ROS package
+# New Improved JRMOT_ROS package
 
-The repository contains the code for the work "JRMOT: A Real-Time 3D Multi-Object Tracker and a New Large-Scale Dataset".
+The repository contains the improved JRMOT_ROS package which was used to participate in the CVPR 2021 challenge. New improvements are, 
+
+- Uncertainty(epistemic and aleatoric) estimation in 3D human detection.
+- Human's body orientation/facing direction estimation w.r.t camera frame. 
+- Improved tracking with detection uncertainty information. 
+- Social group identification using tracking estimates. 
 
 Note that due to the global pandemic, this repository is still a work in progress. Updates will be made as soon as possible.
 

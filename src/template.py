@@ -1,4 +1,4 @@
-#!/home/sibot/anaconda2/bin/python
+#!/usr/bin/env python3
 """ yolo_bbox_to_sort.py
     Subscribe to the Yolo 2 bboxes, and publish the detections with a 2d appearance feature used for reidentification
 """
@@ -40,18 +40,20 @@ class Appearance_Features:
 #        rospy.loginfo('Processing Image with AlignedReID')
         start = time.time()
         try:
-            input_image = self.cv_bridge.imgmsg_to_cv2(ros_image, "bgr8")
+            #input_image = self.cv_bridge.imgmsg_to_cv2(ros_image, "bgr8")
+            input_image = np.frombuffer(ros_image.data, dtype=np.uint8).reshape(ros_image.height, ros_image.width, -1)
         except CvBridgeError as e:
             print(e)
         input_img = torch.from_numpy(input_image).float()
-        input_img = input_img.to('cuda:1')
+        input_img = input_img.to('cuda:0')
         input_img = input_img.permute(2, 0, 1)/255
         # Generate 2D image feaures for each bounding box
         detections = []
         frame_det_ids = []
         count = 0
         for y1_bbox in y1_bboxes.bounding_boxes:
-            if y1_bbox.Class == 'person':
+            print(y1_bbox.id)
+            if y1_bbox.Class == 'person' or y1_bbox.Class == 'Pedestrian' :
                 xmin = y1_bbox.xmin
                 xmax = y1_bbox.xmax
                 ymin = y1_bbox.ymin

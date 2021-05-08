@@ -11,7 +11,7 @@ float32 l # size of bounding box along x dimension
 float32 h # size of bounding box along y dimension
 float32 w # size of bounding box along z dimension
 float32 theta # rotation of bounding box with respect to the positive x axis
-
+uint8 id
 
 float64[] feature # re-ID feature
 

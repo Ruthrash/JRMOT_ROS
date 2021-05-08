@@ -8,7 +8,7 @@ uint64 x1 # x coordinate of the top left of the bounding box
 uint64 y1 # y coordinate of the top left of the bounding box
 uint64 x2 # x coordinate of the bottom right of the bounding box
 uint64 y2 # y coordinate of the bottom right of the bounding box
-
+uint8 id
 float64[] feature # re-ID feature
 
 uint8 frame_det_id #unique id of this detection within this frame (used for associating 2D and 3D detections)
