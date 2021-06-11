@@ -3,14 +3,14 @@
 <launch>
   <!-- Console launch prefix -->
   <arg name="output"        default="screen"/>
-
+  <arg name="node_start_delay" default="12.0" /> 
   <!-- Config and weights folder. -->
   <arg name="aligned_reid_model"         default="$(find jpda_rospack)/src/aligned_reid_JRDB_weights.pth"/>
   <arg name="fpointnet_config"           default="$(find jpda_rospack)/config/featurepointnet.cfg"/>
   <arg name="calib_3d"                   default="$(find jpda_rospack)/calib"/>
   <arg name="combination_depth_weight"   default="1"/>
   <arg name="combination_model_path"     default="0"/>
-  <arg name="sequence_name"   default="bytes-cafe-2019-02-07_0"/>
+  <arg name="sequence_name"   default="tressider-2019-04-26_2"/>
 
 <rosparam>use_sim_time: true</rosparam>
 
@@ -18,7 +18,7 @@
     args="compressed in:=/ros_indigosdk_node/stitched_image0 
           raw out:=/ros_indigosdk_node/stitched_image0"/>
 
-  <node pkg="jpda_rospack" type="store_features.py" name="store_features_node" output="$(arg output)" respawn="false">
+  <node pkg="jpda_rospack" type="store_features.py" name="store_features_node" output="screen" respawn="false" required="true">
   <param name="sequence_name"       value="$(arg sequence_name)" />
   </node>
 
@@ -30,6 +30,9 @@
     <param name="fpointnet_config"          value="$(arg fpointnet_config)" />
     <param name="calib_3d"                  value="$(arg calib_3d)" />
   </node>
+
+  <node pkg="rosbag" type="play" name="rosbag_play" output="log" launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@'" args="--clock --rate=0.01 
+    /media/ruthz/DATA/train_dataset_with_activity/rosbags/$(arg sequence_name).bag"/>
   
   <!--<node pkg="jpda_rospack" type="tracker_3d_node.py" name="jpda_tracker_3d" output="$(arg output)" respawn="false">
     <param name="combination_depth_weight"           value="$(arg combination_depth_weight)" />

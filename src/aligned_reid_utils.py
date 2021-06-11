@@ -614,11 +614,17 @@ def measure_time(enter_msg):
 # @profile
 def generate_features(appearance_model, patches):
     features = []
+    zeros = np.zeros((2048,1,1), dtype=np.uint)
     for patch in patches:
         patch = patch.unsqueeze(0)
-        with torch.no_grad():
-            feature = appearance_model(patch)
-            feature = feature.squeeze(0).cpu().numpy()
+        #print(patch.size(),'sizess')
+        if(list(patch.size())[-2] != 0 and list(patch.size())[-1] != 0):
+          with torch.no_grad():
+              feature = appearance_model(patch)
+              feature = feature.squeeze(0).cpu().numpy()
+        else:
+          feature = zeros
+          #print('else',type(feature))
         features.append(feature)
     return features
 

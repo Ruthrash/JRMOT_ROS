@@ -52,12 +52,14 @@ class Appearance_Features:
         frame_det_ids = []
         count = 0
         for y1_bbox in y1_bboxes.bounding_boxes:
-            print(y1_bbox.id)
+            #print(y1_bbox.id)
             if y1_bbox.Class == 'person' or y1_bbox.Class == 'Pedestrian' :
                 xmin = y1_bbox.xmin
                 xmax = y1_bbox.xmax
                 ymin = y1_bbox.ymin
                 ymax = y1_bbox.ymax
+                if y1_bbox.xmin == -1:
+                    xmin = xmax = ymin = ymax = 0
                 probability = y1_bbox.probability
                 frame_det_ids.append(count)
                 count += 1
@@ -69,6 +71,7 @@ class Appearance_Features:
             self.feature_2d_pub.publish(features_2d)
             return
         image_patches = get_image_patches(input_img, detections)
+        print(np.array(image_patches).shape)
         features = generate_features(self.appearance_model, image_patches)
         
         for (det, feature, i) in zip(detections, features, frame_det_ids):

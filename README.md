@@ -6,6 +6,7 @@ The repository contains the improved JRMOT_ROS package which was used to partici
 - Human's body orientation/facing direction estimation w.r.t camera frame. 
 - Improved tracking with detection uncertainty information. 
 - Social group identification using tracking estimates. 
+https://answers.ros.org/question/326226/importerror-dynamic-module-does-not-define-module-export-function-pyinit__tf2/
 
 Note that due to the global pandemic, this repository is still a work in progress. Updates will be made as soon as possible.
 

@@ -2,6 +2,7 @@
 """ yolo_bbox_to_sort.py
     Subscribe to the Yolo 2 bboxes, and publish the detections with a 2d appearance feature used for reidentification
 """
+import tf
 import time
 import rospy
 import ros_numpy
@@ -24,6 +25,7 @@ from cv_bridge import CvBridge, CvBridgeError
 from geometry_msgs.msg import Pose, Vector3
 from std_msgs.msg import ColorRGBA
 from jpda_rospack.msg import detection3d_with_feature_array, detection3d_with_feature
+import sensor_msgs.point_cloud2 as PCL2
 
 class Detector_3d:
     def __init__(self):
@@ -47,7 +49,7 @@ class Detector_3d:
         self.time_sync = \
             message_filters.ApproximateTimeSynchronizer([self.yolo_bbox_sub,
                                                          self.velodyne_sub_upper,
-                                                         self.velodyne_sub_lower], 5, 0.06)
+                                                         self.velodyne_sub_lower], 5, 0.5)
         self.time_sync.registerCallback(self.get_3d_feature)
     
         self.feature_3d_pub = rospy.Publisher("detection3d_with_feature", detection3d_with_feature_array, queue_size=10)
@@ -56,7 +58,8 @@ class Detector_3d:
         self.debug_pub = rospy.Publisher("/test", Int8, queue_size=1)
         self.marker_box_pub = rospy.Publisher("/3d_detection_markers", MarkerArray, queue_size=10)
         rospy.loginfo("3D detector ready.")
-        
+
+        # *        
     def get_3d_feature(self, y1_bboxes, pointcloud_upper, pointcloud_lower):
         print("getting pcs")
         start = time.time()
@@ -80,15 +83,15 @@ class Detector_3d:
         pc_lower = self.calib.move_lidar_to_camera_frame(pc_lower, upper=False)
         pc = torch.cat([pc_upper, pc_lower], dim = 0)
         pc[:, 3] = 1
-        # pc = pc.cpu().numpy()
-        # self.publish_pointcloud_from_array(pc, self.pc_transform_pub, header = pointcloud_upper.header)
+        #pc_ = pc.cpu().numpy()
+        #self.publish_pointcloud_from_array(pc_, self.pc_transform_pub, header = pointcloud_upper.header)
         # idx = torch.randperm(pc.shape[0]).cuda()
         # pc = pc[idx]
         detections_2d = []
         frame_det_ids = []
         count = 0
         for y1_bbox in y1_bboxes.bounding_boxes:
-            print(y1_bbox.id)
+            #print(y1_bbox.id)
             if y1_bbox.Class == 'person'or y1_bbox.Class == 'Pedestrian' :
                 xmin = y1_bbox.xmin
                 xmax = y1_bbox.xmax
@@ -103,8 +106,9 @@ class Detector_3d:
         features_3d.header.frame_id = 'occam'
         boxes_3d_markers = MarkerArray()
         if not detections_2d:
-            self.marker_box_pub.publish(boxes_3d_markers)
+            #self.marker_box_pub.publish(boxes_3d_markers)
             self.feature_3d_pub.publish(features_3d)
+            rospy.loginfo("3d det publishing")
             return
         boxes_3d, valid_3d, rot_angles, _, depth_features, frustums = \
             generate_detections_3d(self.depth_model, detections_2d, pc,
@@ -148,7 +152,29 @@ class Detector_3d:
                 pose_msg.position.z = det_msg.z
                 marker_msg.pose = pose_msg
                 marker_msg.color = ColorRGBA(g=1, a =0.5)
+               
+                arrow_msg = Marker()
+                arrow_msg.header.stamp = pointcloud_lower.header.stamp
+                arrow_msg.header.frame_id = 'occam'
+                arrow_msg.type = Marker.ARROW
+                arrow_msg.id = i; arrow_msg.action = 0; arrow_msg.color = ColorRGBA(g=1, a =1) 
+                arrow_msg.lifetime = rospy.Duration(0.2)
+                #arrow_msg.pose.position.x = det_msg.x 
+                #arrow_msg.pose.position.y = det_msg.y - det_msg.h/2  
+                #arrow_msg.pose.position.z = det_msg.z
+                arrow_msg.scale.x = 0.75
+                arrow_msg.scale.y = 0.035
+                arrow_msg.scale.z = 0.035 
+                quat = tf.transformations.quaternion_from_euler(0.0,
+                                                                det_msg.theta, 
+                                                                0.0)
+                pose_msg.orientation.x = quat[0] ; pose_msg.orientation.y = quat[1] 
+                pose_msg.orientation.z = quat[2] ; pose_msg.orientation.w = quat[3]
+                arrow_msg.pose = pose_msg
                 boxes_3d_markers.markers.append(marker_msg)
+                boxes_3d_markers.markers.append(arrow_msg)          
+
+
             else:
                 det_msg.y = -1
                 det_msg.x = -1
@@ -161,10 +187,10 @@ class Detector_3d:
             features_3d.detection3d_with_features.append(det_msg)
 
         
-        self.marker_box_pub.publish(boxes_3d_markers)
+        #self.marker_box_pub.publish(boxes_3d_markers)
         
         self.feature_3d_pub.publish(features_3d)
-        
+        rospy.loginfo("3d det publishing")
         #rospy.loginfo("3D detector time: {}".format(time.time() - start))
 
     def publish_pointcloud_from_array(self, pointcloud, publisher, frame = 'occam', header = None):
