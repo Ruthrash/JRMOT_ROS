@@ -1,5 +1,7 @@
-<!--# New Improved JRMOT_ROS package
+# Additions to JRMOT_ROS package
 
+Modify [store_features.launch](https://github.com/Ruthrash/JRMOT_ROS/blob/master/launch/store_features.launch) and use [store_features.sh](https://github.com/Ruthrash/JRMOT_ROS/blob/master/scripts/store_features.sh) to automatically iterate over the dataset to store 2D and 3D appearance feature vectors
+<!--
 The repository contains the improved JRMOT_ROS package which was used to participate in the CVPR 2021 challenge. New improvements are, 
 
 - Uncertainty(epistemic and aleatoric) estimation in 3D human detection.
